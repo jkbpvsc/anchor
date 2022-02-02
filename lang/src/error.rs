@@ -98,6 +98,12 @@ pub enum ErrorCode {
     /// 2019 - A space constraint was violated
     #[msg("A space constraint was violated")]
     ConstraintSpace,
+    /// 2020 - A space constraint was violated
+    #[msg("Instruction not for program id")]
+    ConstraintInstructionsProgramId,
+    /// 2021 - A space constraint was violated
+    #[msg("Instructions constraint was violated")]
+    ConstraintInstructionsInvalidInstruction,
 
     // Accounts.
     /// 3000 - The account discriminator was already set on this account

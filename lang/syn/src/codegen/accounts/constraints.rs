@@ -57,6 +57,7 @@ pub fn linearize(c_group: &ConstraintGroup) -> Vec<Constraint> {
         close,
         address,
         associated_token,
+        instructions,
     } = c_group.clone();
 
     let mut constraints = Vec::new();
@@ -100,6 +101,9 @@ pub fn linearize(c_group: &ConstraintGroup) -> Vec<Constraint> {
     if let Some(c) = address {
         constraints.push(Constraint::Address(c));
     }
+    if let Some(c) = instructions {
+        constraints.push(Constraint::Instructions(c));
+    }
     constraints
 }
 
@@ -120,6 +124,7 @@ fn generate_constraint(f: &Field, c: &Constraint) -> proc_macro2::TokenStream {
         Constraint::Close(c) => generate_constraint_close(f, c),
         Constraint::Address(c) => generate_constraint_address(f, c),
         Constraint::AssociatedToken(c) => generate_constraint_associated_token(f, c),
+        Constraint::Instructions(c) => generate_constraint_instructions(f, c),
     }
 }
 
@@ -410,6 +415,44 @@ fn generate_constraint_associated_token(
         let __associated_token_address = anchor_spl::associated_token::get_associated_token_address(&#wallet_address.key(), &#spl_token_mint_address.key());
         if #name.key() != __associated_token_address {
             return Err(anchor_lang::__private::ErrorCode::ConstraintAssociated.into());
+        }
+    }
+}
+
+fn generate_constraint_instructions(
+    f: &Field,
+    c: &ConstraintInstructions,
+) -> proc_macro2::TokenStream {
+    let sysvar_instructions_account = &f.ident;
+    let ix_method_name = &c
+        .instruction
+        .path
+        .segments
+        .last()
+        .unwrap()
+        .ident
+        .to_string();
+
+    let sighash_arr = program_codegen::common::sighash(
+        program_codegen::common::SIGHASH_GLOBAL_NAMESPACE,
+        ix_method_name,
+    );
+    let sighash_tts: proc_macro2::TokenStream = format!("{:?}", sighash_arr).parse().unwrap();
+
+    quote! {
+        let __instruction = anchor_lang::solana_program::sysvar::instructions::get_instruction_relative(-1, &#sysvar_instructions_account)?;
+        if &__instruction.program_id != program_id {
+            return Err(anchor_lang::__private::ErrorCode::ConstraintInstructionsProgramId.into());
+        }
+
+        let __sighash: [u8; 8] =  {
+            let mut __sighash: [u8; 8] = [0; 8];
+            __sighash.copy_from_slice(&__instruction.data[..8]);
+            __sighash
+        };
+
+        if #sighash_tts != __sighash {
+            return Err(anchor_lang::__private::ErrorCode::ConstraintInstructionsInvalidInstruction.into());
         }
     }
 }

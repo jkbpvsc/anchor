@@ -82,6 +82,8 @@ const LangErrorCode = {
   ConstraintMintFreezeAuthority: 2017,
   ConstraintMintDecimals: 2018,
   ConstraintSpace: 2019,
+  ConstraintInstructionsProgramId: 2020,
+  ConstraintInstructionsInvalidInstruction: 2021,
 
   // Accounts.
   AccountDiscriminatorAlreadySet: 3000,

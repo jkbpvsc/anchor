@@ -336,6 +336,7 @@ pub struct ConstraintGroupBuilder<'ty> {
     pub mint_decimals: Option<Context<ConstraintMintDecimals>>,
     pub bump: Option<Context<ConstraintTokenBump>>,
     pub program_seed: Option<Context<ConstraintProgramSeed>>,
+    pub instructions: Option<Context<ConstraintInstructions>>,
 }
 
 impl<'ty> ConstraintGroupBuilder<'ty> {
@@ -367,6 +368,7 @@ impl<'ty> ConstraintGroupBuilder<'ty> {
             mint_decimals: None,
             bump: None,
             program_seed: None,
+            instructions: None
         }
     }
 
@@ -524,6 +526,7 @@ impl<'ty> ConstraintGroupBuilder<'ty> {
             mint_decimals,
             bump,
             program_seed,
+            instructions,
         } = self;
 
         // Converts Option<Context<T>> -> Option<T>.
@@ -622,6 +625,7 @@ impl<'ty> ConstraintGroupBuilder<'ty> {
             address: into_inner!(address),
             associated_token: if !is_init { associated_token } else { None },
             seeds,
+            instructions: into_inner!(instructions),
         })
     }
 
@@ -652,6 +656,7 @@ impl<'ty> ConstraintGroupBuilder<'ty> {
             ConstraintToken::MintDecimals(c) => self.add_mint_decimals(c),
             ConstraintToken::Bump(c) => self.add_bump(c),
             ConstraintToken::ProgramSeed(c) => self.add_program_seed(c),
+            ConstraintToken::Instructions(c) => self.add_instructions(c),
         }
     }
 
@@ -974,6 +979,15 @@ impl<'ty> ConstraintGroupBuilder<'ty> {
             return Err(ParseError::new(c.span(), "space already provided"));
         }
         self.space.replace(c);
+        Ok(())
+    }
+
+    fn add_instructions(&mut self, c: Context<ConstraintInstructions>) -> ParseResult<()> {
+        if self.instructions.is_some() {
+            return Err(ParseError::new(c.span(), "instructions already provided"));
+        }
+        self.instructions.replace(c);
+
         Ok(())
     }
 }

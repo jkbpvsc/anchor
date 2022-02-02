@@ -11,10 +11,7 @@ use syn::parse::{Error as ParseError, Parse, ParseStream, Result as ParseResult}
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::Comma;
-use syn::{
-    Expr, Generics, Ident, ImplItemMethod, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, LitInt,
-    LitStr, PatType, Token, TypePath,
-};
+use syn::{Expr, ExprPath, Generics, Ident, ImplItemMethod, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, LitInt, LitStr, PatType, Token, TypePath};
 
 pub mod codegen;
 #[cfg(feature = "hash")]
@@ -539,6 +536,7 @@ pub struct ConstraintGroup {
     close: Option<ConstraintClose>,
     address: Option<ConstraintAddress>,
     associated_token: Option<ConstraintAssociatedToken>,
+    instructions: Option<ConstraintInstructions>,
 }
 
 impl ConstraintGroup {
@@ -580,6 +578,7 @@ pub enum Constraint {
     State(ConstraintState),
     Close(ConstraintClose),
     Address(ConstraintAddress),
+    Instructions(ConstraintInstructions)
 }
 
 // Constraint token is a single keyword in a `#[account(<TOKEN>)]` attribute.
@@ -611,6 +610,7 @@ pub enum ConstraintToken {
     MintDecimals(Context<ConstraintMintDecimals>),
     Bump(Context<ConstraintTokenBump>),
     ProgramSeed(Context<ConstraintProgramSeed>),
+    Instructions(Context<ConstraintInstructions>),
 }
 
 impl Parse for ConstraintToken {
@@ -783,6 +783,12 @@ pub struct ConstraintAssociatedToken {
     pub wallet: Expr,
     pub mint: Expr,
 }
+
+#[derive(Debug, Clone)]
+pub struct ConstraintInstructions {
+    instruction: ExprPath,
+}
+
 
 // Syntaxt context object for preserving metadata about the inner item.
 #[derive(Debug, Clone)]
