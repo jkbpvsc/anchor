@@ -419,44 +419,6 @@ fn generate_constraint_associated_token(
     }
 }
 
-fn generate_constraint_instructions(
-    f: &Field,
-    c: &ConstraintInstructions,
-) -> proc_macro2::TokenStream {
-    let sysvar_instructions_account = &f.ident;
-    let ix_method_name = &c
-        .instruction
-        .path
-        .segments
-        .last()
-        .unwrap()
-        .ident
-        .to_string();
-
-    let sighash_arr = program_codegen::common::sighash(
-        program_codegen::common::SIGHASH_GLOBAL_NAMESPACE,
-        ix_method_name,
-    );
-    let sighash_tts: proc_macro2::TokenStream = format!("{:?}", sighash_arr).parse().unwrap();
-
-    quote! {
-        let __instruction = anchor_lang::solana_program::sysvar::instructions::get_instruction_relative(-1, &#sysvar_instructions_account)?;
-        if &__instruction.program_id != program_id {
-            return Err(anchor_lang::__private::ErrorCode::ConstraintInstructionsProgramId.into());
-        }
-
-        let __sighash: [u8; 8] =  {
-            let mut __sighash: [u8; 8] = [0; 8];
-            __sighash.copy_from_slice(&__instruction.data[..8]);
-            __sighash
-        };
-
-        if #sighash_tts != __sighash {
-            return Err(anchor_lang::__private::ErrorCode::ConstraintInstructionsInvalidInstruction.into());
-        }
-    }
-}
-
 // `if_needed` is set if account allocation and initialization is optional.
 pub fn generate_init(
     f: &Field,
@@ -799,6 +761,44 @@ pub fn generate_constraint_state(f: &Field, c: &ConstraintState) -> proc_macro2:
         }
         if #ident.as_ref().owner != &#program_target.key() {
             return Err(anchor_lang::__private::ErrorCode::ConstraintState.into());
+        }
+    }
+}
+
+fn generate_constraint_instructions(
+    f: &Field,
+    c: &ConstraintInstructions,
+) -> proc_macro2::TokenStream {
+    let sysvar_instructions_account = &f.ident;
+    let ix_method_name = &c
+        .instruction
+        .path
+        .segments
+        .last()
+        .unwrap()
+        .ident
+        .to_string();
+
+    let sighash_arr = program_codegen::common::sighash(
+        program_codegen::common::SIGHASH_GLOBAL_NAMESPACE,
+        ix_method_name,
+    );
+    let sighash_tts: proc_macro2::TokenStream = format!("{:?}", sighash_arr).parse().unwrap();
+
+    quote! {
+        let __instruction = anchor_lang::solana_program::sysvar::instructions::get_instruction_relative(-1, &#sysvar_instructions_account)?;
+        if &__instruction.program_id != program_id {
+            return Err(anchor_lang::__private::ErrorCode::ConstraintInstructionsProgramId.into());
+        }
+
+        let __sighash: [u8; 8] =  {
+            let mut __sighash: [u8; 8] = [0; 8];
+            __sighash.copy_from_slice(&__instruction.data[..8]);
+            __sighash
+        };
+
+        if #sighash_tts != __sighash {
+            return Err(anchor_lang::__private::ErrorCode::ConstraintInstructionsInvalidInstruction.into());
         }
     }
 }
