@@ -291,6 +291,12 @@ pub fn parse_token(stream: ParseStream) -> ParseResult<ConstraintToken> {
                         error: parse_optional_custom_error(&stream)?,
                     },
                 )),
+                "instructions_layout" => ConstraintToken::SysvarInstructionsLayout(Context::new(
+                    span,
+                    ConstraintSysvarInstructionsLayout {
+                        right_before_instruction: stream.parse()?,
+                    }
+                )),
                 _ => return Err(ParseError::new(ident.span(), "Invalid attribute")),
             }
         }
@@ -336,7 +342,7 @@ pub struct ConstraintGroupBuilder<'ty> {
     pub mint_decimals: Option<Context<ConstraintMintDecimals>>,
     pub bump: Option<Context<ConstraintTokenBump>>,
     pub program_seed: Option<Context<ConstraintProgramSeed>>,
-    pub instructions: Option<Context<ConstraintInstructions>>,
+    pub instructions: Option<Context<ConstraintSysvarInstructionsLayout>>,
 }
 
 impl<'ty> ConstraintGroupBuilder<'ty> {
@@ -636,7 +642,7 @@ impl<'ty> ConstraintGroupBuilder<'ty> {
             address: into_inner!(address),
             associated_token: if !is_init { associated_token } else { None },
             seeds,
-            instructions: into_inner!(instructions),
+            sysvar_instructions_layout: into_inner!(instructions),
         })
     }
 
@@ -667,7 +673,7 @@ impl<'ty> ConstraintGroupBuilder<'ty> {
             ConstraintToken::MintDecimals(c) => self.add_mint_decimals(c),
             ConstraintToken::Bump(c) => self.add_bump(c),
             ConstraintToken::ProgramSeed(c) => self.add_program_seed(c),
-            ConstraintToken::Instructions(c) => self.add_instructions(c),
+            ConstraintToken::SysvarInstructionsLayout(c) => self.add_instructions(c),
         }
     }
 
@@ -993,7 +999,7 @@ impl<'ty> ConstraintGroupBuilder<'ty> {
         Ok(())
     }
 
-    fn add_instructions(&mut self, c: Context<ConstraintInstructions>) -> ParseResult<()> {
+    fn add_instructions(&mut self, c: Context<ConstraintSysvarInstructionsLayout>) -> ParseResult<()> {
         if self.instructions.is_some() {
             return Err(ParseError::new(c.span(), "instructions already provided"));
         }

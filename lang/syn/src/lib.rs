@@ -574,7 +574,7 @@ pub struct ConstraintGroup {
     close: Option<ConstraintClose>,
     address: Option<ConstraintAddress>,
     associated_token: Option<ConstraintAssociatedToken>,
-    instructions: Option<ConstraintInstructions>,
+    sysvar_instructions_layout: Option<ConstraintSysvarInstructionsLayout>,
 }
 
 impl ConstraintGroup {
@@ -616,7 +616,7 @@ pub enum Constraint {
     State(ConstraintState),
     Close(ConstraintClose),
     Address(ConstraintAddress),
-    Instructions(ConstraintInstructions)
+    SysvarInstructionsLayout(ConstraintSysvarInstructionsLayout)
 }
 
 // Constraint token is a single keyword in a `#[account(<TOKEN>)]` attribute.
@@ -648,7 +648,7 @@ pub enum ConstraintToken {
     MintDecimals(Context<ConstraintMintDecimals>),
     Bump(Context<ConstraintTokenBump>),
     ProgramSeed(Context<ConstraintProgramSeed>),
-    Instructions(Context<ConstraintInstructions>),
+    SysvarInstructionsLayout(Context<ConstraintSysvarInstructionsLayout>),
 }
 
 impl Parse for ConstraintToken {
@@ -823,8 +823,8 @@ pub struct ConstraintAssociatedToken {
 }
 
 #[derive(Debug, Clone)]
-pub struct ConstraintInstructions {
-    instruction: ExprPath,
+pub struct ConstraintSysvarInstructionsLayout {
+    right_before_instruction: ExprPath,
 }
 
 

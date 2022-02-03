@@ -57,7 +57,7 @@ pub fn linearize(c_group: &ConstraintGroup) -> Vec<Constraint> {
         close,
         address,
         associated_token,
-        instructions,
+        sysvar_instructions_layout,
     } = c_group.clone();
 
     let mut constraints = Vec::new();
@@ -101,8 +101,8 @@ pub fn linearize(c_group: &ConstraintGroup) -> Vec<Constraint> {
     if let Some(c) = address {
         constraints.push(Constraint::Address(c));
     }
-    if let Some(c) = instructions {
-        constraints.push(Constraint::Instructions(c));
+    if let Some(c) = sysvar_instructions_layout {
+        constraints.push(Constraint::SysvarInstructionsLayout(c));
     }
     constraints
 }
@@ -124,7 +124,7 @@ fn generate_constraint(f: &Field, c: &Constraint) -> proc_macro2::TokenStream {
         Constraint::Close(c) => generate_constraint_close(f, c),
         Constraint::Address(c) => generate_constraint_address(f, c),
         Constraint::AssociatedToken(c) => generate_constraint_associated_token(f, c),
-        Constraint::Instructions(c) => generate_constraint_instructions(f, c),
+        Constraint::SysvarInstructionsLayout(c) => generate_constraint_instructions(f, c),
     }
 }
 
@@ -784,11 +784,11 @@ pub fn generate_constraint_state(f: &Field, c: &ConstraintState) -> proc_macro2:
 
 fn generate_constraint_instructions(
     f: &Field,
-    c: &ConstraintInstructions,
+    c: &ConstraintSysvarInstructionsLayout,
 ) -> proc_macro2::TokenStream {
     let sysvar_instructions_account = &f.ident;
     let ix_method_name = &c
-        .instruction
+        .right_before_instruction
         .path
         .segments
         .last()
@@ -803,6 +803,11 @@ fn generate_constraint_instructions(
     let sighash_tts: proc_macro2::TokenStream = format!("{:?}", sighash_arr).parse().unwrap();
 
     quote! {
+        let __current_ix_index = anchor_lang::solana_program::sysvar::instructions::load_current_index_checked(&#sysvar_instructions_account)?;
+        if __current_ix_index == 0 {
+            return Err(anchor_lang::__private::ErrorCode::ConstraintInstructionsInvalidInstruction.into());
+        }
+
         let __instruction = anchor_lang::solana_program::sysvar::instructions::get_instruction_relative(-1, &#sysvar_instructions_account)?;
         if &__instruction.program_id != program_id {
             return Err(anchor_lang::__private::ErrorCode::ConstraintInstructionsProgramId.into());
