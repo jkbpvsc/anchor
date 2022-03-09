@@ -295,7 +295,7 @@ pub fn parse_token(stream: ParseStream) -> ParseResult<ConstraintToken> {
                     span,
                     ConstraintSysvarInstructionsLayout {
                         right_before_instruction: stream.parse()?,
-                    }
+                    },
                 )),
                 _ => return Err(ParseError::new(ident.span(), "Invalid attribute")),
             }
@@ -374,7 +374,7 @@ impl<'ty> ConstraintGroupBuilder<'ty> {
             mint_decimals: None,
             bump: None,
             program_seed: None,
-            instructions: None
+            instructions: None,
         }
     }
 
@@ -1020,7 +1020,10 @@ impl<'ty> ConstraintGroupBuilder<'ty> {
         Ok(())
     }
 
-    fn add_instructions(&mut self, c: Context<ConstraintSysvarInstructionsLayout>) -> ParseResult<()> {
+    fn add_instructions(
+        &mut self,
+        c: Context<ConstraintSysvarInstructionsLayout>,
+    ) -> ParseResult<()> {
         if self.instructions.is_some() {
             return Err(ParseError::new(c.span(), "instructions already provided"));
         }

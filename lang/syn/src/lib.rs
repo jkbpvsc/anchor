@@ -12,7 +12,10 @@ use syn::parse::{Error as ParseError, Parse, ParseStream, Result as ParseResult}
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::token::Comma;
-use syn::{Expr, ExprPath, Generics, Ident, ImplItemMethod, ItemEnum, ItemFn, ItemImpl, ItemMod, ItemStruct, LitInt, LitStr, PatType, Token, TypePath};
+use syn::{
+    Expr, ExprPath, Generics, Ident, ImplItemMethod, ItemEnum, ItemFn, ItemImpl, ItemMod,
+    ItemStruct, LitInt, LitStr, PatType, Token, TypePath,
+};
 
 pub mod codegen;
 #[cfg(feature = "hash")]
@@ -620,7 +623,7 @@ pub enum Constraint {
     State(ConstraintState),
     Close(ConstraintClose),
     Address(ConstraintAddress),
-    SysvarInstructionsLayout(ConstraintSysvarInstructionsLayout)
+    SysvarInstructionsLayout(ConstraintSysvarInstructionsLayout),
 }
 
 // Constraint token is a single keyword in a `#[account(<TOKEN>)]` attribute.
@@ -830,7 +833,6 @@ pub struct ConstraintAssociatedToken {
 pub struct ConstraintSysvarInstructionsLayout {
     right_before_instruction: ExprPath,
 }
-
 
 // Syntaxt context object for preserving metadata about the inner item.
 #[derive(Debug, Clone)]
