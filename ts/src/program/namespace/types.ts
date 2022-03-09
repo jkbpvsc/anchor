@@ -10,6 +10,7 @@ import {
   IdlTypeDefTyStruct,
 } from "../../idl";
 import { Accounts, Context } from "../context";
+import { MethodsBuilder } from "./methods";
 
 /**
  * All instructions for an IDL.
@@ -66,7 +67,11 @@ export type MakeInstructionsNamespace<
 };
 
 export type MakeMethodsNamespace<IDL extends Idl, I extends IdlInstruction> = {
-  [M in keyof InstructionMap<I>]: MethodsFn<IDL, InstructionMap<I>[M], any>;
+  [M in keyof InstructionMap<I>]: MethodsFn<
+    IDL,
+    InstructionMap<I>[M],
+    MethodsBuilder<IDL, InstructionMap<I>[M]>
+  >;
 };
 
 export type InstructionContextFn<
@@ -94,7 +99,7 @@ type TypeMap = {
   bool: boolean;
   string: string;
 } & {
-  [K in "u8" | "i8" | "u16" | "i16" | "u32" | "i32"]: number;
+  [K in "u8" | "i8" | "u16" | "i16" | "u32" | "i32" | "f32" | "f64"]: number;
 } &
   {
     [K in "u64" | "i64" | "u128" | "i128"]: BN;

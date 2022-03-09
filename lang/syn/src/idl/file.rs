@@ -18,8 +18,12 @@ pub fn parse(
     filename: impl AsRef<Path>,
     version: String,
     seeds_feature: bool,
+    safety_checks: bool,
 ) -> Result<Option<Idl>> {
     let ctx = CrateContext::parse(filename)?;
+    if safety_checks {
+        ctx.safety_checks()?;
+    }
 
     let program_mod = match parse_program_mod(&ctx) {
         None => return Ok(None),
@@ -289,7 +293,7 @@ fn parse_error_enum(ctx: &CrateContext) -> Option<syn::ItemEnum> {
                 .iter()
                 .filter(|attr| {
                     let segment = attr.path.segments.last().unwrap();
-                    segment.ident == "error"
+                    segment.ident == "error_code"
                 })
                 .count();
             match attrs_count {
@@ -349,7 +353,7 @@ fn parse_account_derives(ctx: &CrateContext) -> HashMap<String, AccountsStruct> 
     ctx.structs()
         .filter_map(|i_strct| {
             for attr in &i_strct.attrs {
-                if attr.tokens.to_string().contains(DERIVE_NAME) {
+                if attr.path.is_ident("derive") && attr.tokens.to_string().contains(DERIVE_NAME) {
                     let strct = accounts::parse(i_strct).expect("Code not parseable");
                     return Some((strct.ident.to_string(), strct));
                 }

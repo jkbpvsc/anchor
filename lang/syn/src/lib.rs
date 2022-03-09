@@ -204,6 +204,8 @@ pub struct Field {
     pub constraints: ConstraintGroup,
     pub instruction_constraints: ConstraintGroup,
     pub ty: Ty,
+    /// Documentation string.
+    pub docs: String,
 }
 
 impl Field {
@@ -438,6 +440,8 @@ pub struct CompositeField {
     pub instruction_constraints: ConstraintGroup,
     pub symbol: String,
     pub raw_field: syn::Field,
+    /// Documentation string.
+    pub docs: String,
 }
 
 // A type of an account field.
@@ -717,7 +721,7 @@ pub enum ConstraintRentExempt {
 pub struct ConstraintInitGroup {
     pub if_needed: bool,
     pub seeds: Option<ConstraintSeedsGroup>,
-    pub payer: Option<Expr>,
+    pub payer: Expr,
     pub space: Option<Expr>,
     pub kind: InitKind,
 }
